@@ -1,0 +1,104 @@
+package falstad;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Panel;
+import java.awt.event.WindowEvent;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+public class MazePanel extends Panel  {
+	/* Panel operates a double buffer see
+	 * http://www.codeproject.com/Articles/2136/Double-buffer-in-standard-Java-AWT
+	 * for details
+	 */
+	Image bufferImage ;
+	
+	// Frames and components to reuse
+	JFrame frame;
+	JComponent newContentPane;
+	JButton button;
+	
+	// Combo Box declarations
+	ComboBox drivers;
+	ComboBox algs;
+	ComboBox levels;
+	
+	
+	public MazePanel() {
+		super() ;
+		this.setFocusable(false) ;
+	}
+	@Override
+	public void update(Graphics g) {
+		paint(g) ;
+	}
+	@Override
+	public void paint(Graphics g) {
+		g.drawImage(bufferImage,0,0,null) ;
+	}
+	/*
+	public void setBufferImage(Image buffer) {
+		bufferImage = buffer ;
+	}
+	*/
+	public void initBufferImage() {
+		bufferImage = createImage(Constants.VIEW_WIDTH, Constants.VIEW_HEIGHT);
+		if (null == bufferImage)
+		{
+			System.out.println("Error: creation of buffered image failed, presumedly container not displayable");
+		}
+	}
+	public Graphics getBufferGraphics() {
+		if (null == bufferImage)
+			initBufferImage() ;
+		return bufferImage.getGraphics() ;
+	}
+	public void update() {
+		paint(getGraphics()) ;
+	}
+	
+	public void makeGUI(){
+		/////////////////////// Only called when initialized /////////////////////
+		frame = new JFrame("Maze");
+        JLabel label = new JLabel("Welcome to the Maze. Choose:");
+        label.setFont(new Font("Times New Roman", 1, 20));
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        //Create and set up the content pane.
+        newContentPane = new JPanel(new BorderLayout());
+        newContentPane.add(label, BorderLayout.PAGE_START);
+        JComponent newContentPane2 = new JPanel(new BorderLayout());
+        JComponent newContentPane3 = new JPanel(new BorderLayout());
+        ////////// Combo Boxes ///////////////////
+        drivers = new ComboBox("drivers");
+        algs = new ComboBox("algorithms");
+        levels = new ComboBox("levels");
+        newContentPane2.add(algs, BorderLayout.WEST);
+        newContentPane2.add(drivers, BorderLayout.CENTER);
+        newContentPane2.add(levels, BorderLayout.EAST);
+        // Adds it to the first panel in the center
+        newContentPane.add(newContentPane2, BorderLayout.CENTER);
+        
+        button = new JButton("GO!");
+        newContentPane3.add(button);
+        newContentPane.add(newContentPane3,  BorderLayout.PAGE_END);
+
+        newContentPane.setOpaque(true); //content panes must be opaque
+        
+        frame.setContentPane(newContentPane);
+        frame.pack();
+	}
+/**
+	public Color getColor(){
+		
+	}
+	**/
+}
