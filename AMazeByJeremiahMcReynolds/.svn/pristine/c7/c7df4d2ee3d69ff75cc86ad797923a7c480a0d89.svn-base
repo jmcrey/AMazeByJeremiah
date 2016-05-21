@@ -1,0 +1,82 @@
+package edu.wm.cs.cs301.londynsmith.amazebylondynsmith.ui;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class FinishActivity extends Activity {
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_finish);
+		Bundle extra = getIntent().getExtras();
+		
+		String name = extra.getString("name");
+		Log.v("Value of the extra", name);
+		if(name.equals("No Battery")){
+			TextView text = (TextView) findViewById(R.id.textView1);
+			text.setText("Sorry you lost... \n \n \n You ran out of battery \n \n \n "
+					+ "Your pathlength is some weird number we don't have yet");
+		}
+		if(name.equals("Accident")){
+			TextView text = (TextView) findViewById(R.id.textView1);
+			text.setText("Oops there was an accident \n \n \n We're working on solving the problem");
+		}
+		if(name.equals("Success")){
+			TextView text = (TextView) findViewById(R.id.textView1);
+			text.setText("Congratulations! You won!\n \n \n Your battery is a weird number \n \n \n "
+					+ "Your pathlength is some weird number we don't have yet");
+		}
+		
+		TextView text2 = (TextView) findViewById(R.id.textView2);
+		text2.setText("Click to save most recent maze.");
+		Button save = (Button) findViewById(R.id.button2);
+        save.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Toast.makeText(getApplicationContext(), "Saved the Maze", Toast.LENGTH_SHORT).show();
+		        Log.v("Title: Save Button", "Saving the maze internals to an xml");				
+			}
+		});
+		
+		Button past = (Button) findViewById(R.id.button1);
+        past.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Toast.makeText(getApplicationContext(), "Sending you back to the beginning", Toast.LENGTH_SHORT).show();
+		        Intent i = new Intent(v.getContext(), AMazeActivity.class);
+		        startActivityForResult(i, 0);
+		        Log.v("Title: backButton", "Proceeding backward");				
+			}
+		});
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.finish, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle action bar item clicks here. The action bar will
+		// automatically handle clicks on the Home/Up button, so long
+		// as you specify a parent activity in AndroidManifest.xml.
+		int id = item.getItemId();
+		if (id == R.id.action_settings) {
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+}

@@ -1,0 +1,192 @@
+package falstad;
+
+import java.awt.Panel;
+import java.util.ArrayList;
+import java.util.Iterator;
+
+public class FakeMaze extends Maze{
+	// Model View Controller pattern, the model needs to know the viewers
+		// however, all viewers share the same graphics to draw on, such that the share graphics
+		// are administered by the Maze object
+		final private ArrayList<Viewer> views = new ArrayList<Viewer>() ; 
+		MazePanel panel ; // graphics to draw on, shared by all views
+			
+
+
+		private int state;			// keeps track of the current GUI state, one of STATE_TITLE,...,STATE_FINISH, mainly used in redraw()
+		// possible values are defined in Constants
+		// user can navigate 
+		// title -> generating -(escape) -> title
+		// title -> generation -> play -(escape)-> title
+		// title -> generation -> play -> finish -> title
+		// STATE_PLAY is the main state where the user can navigate through the maze in a first person view
+
+		private int percentdone = 0; // describes progress during generation phase
+		private boolean showMaze;		 	// toggle switch to show overall maze on screen
+		private boolean showSolution;		// toggle switch to show solution in overall maze on screen
+		private boolean solving;			// toggle switch 
+		private boolean mapMode; // true: display map of maze, false: do not display map of maze
+		// map_mode is toggled by user keyboard input, causes a call to draw_map during play mode
+
+		//static final int viewz = 50;    
+		int viewx, viewy, angle;
+		int dx, dy;  // current direction
+		int px, py ; // current position on maze grid (x,y)
+		int walkStep;
+		int viewdx, viewdy; // current view direction
+
+
+		// debug stuff
+		boolean deepdebug = false;
+		boolean allVisible = false;
+		boolean newGame = false;
+
+		// properties of the current maze
+		int mazew; // width of maze
+		int mazeh; // height of maze
+		Cells mazecells ; // maze as a matrix of cells which keep track of the location of walls
+		Distance mazedists ; // a matrix with distance values for each cell towards the exit
+		Cells seencells ; // a matrix with cells to memorize which cells are visible from the current point of view
+		// the FirstPersonDrawer obtains this information and the MapDrawer uses it for highlighting currently visible walls on the map
+		BSPNode rootnode ; // a binary tree type search data structure to quickly locate a subset of segments
+		// a segment is a continuous sequence of walls in vertical or horizontal direction
+		// a subset of segments need to be quickly identified for drawing
+		// the BSP tree partitions the set of all segments and provides a binary search tree for the partitions
+		
+
+		// Mazebuilder is used to calculate a new maze together with a solution
+		// The maze is computed in a separate thread. It is started in the local Build method.
+		// The calculation communicates back by calling the local newMaze() method.
+		MazeBuilder mazebuilder;
+
+		
+		// fixing a value matching the escape key
+		final int ESCAPE = 27;
+
+		// generation method used to compute a maze
+		int method = 0 ; // 0 : default method, Falstad's original code
+		// method == 1: Prim's algorithm
+
+		int zscale = Constants.VIEW_HEIGHT/2;
+
+		private RangeSet rset;
+		
+		/**
+		 * Constructor
+		 */
+
+		public FakeMaze() {
+			super() ;
+		}
+		/**
+		 * Constructor that also selects a particular generation method
+		 */
+		public FakeMaze(int method)
+		{
+			super() ;
+			// 0 is default, do not accept other settings but 0 and 1
+			if (1 == method)
+				this.method = 1 ;
+			else if(2 == method)
+				this.method = 2;
+		}
+		
+		/**
+		 * Method obtains a new Mazebuilder and has it compute new maze, 
+		 * it is only used in keyDown()
+		 * @param skill level determines the width, height and number of rooms for the new maze
+		 */
+		@Override
+		public void build(int skill) {
+			// switch screen
+			state = Constants.STATE_GENERATING;
+			percentdone = 0;
+			// select generation method
+			switch(method){
+			case 2: mazebuilder = new MazeBuilderEller(true);
+			break;
+			case 1 : mazebuilder = new MazeBuilderPrim(); // generate with Prim's algorithm
+			break ;
+			case 0: // generate with Falstad's original algorithm (0 and default), note the missing break statement
+			default : mazebuilder = new MazeBuilder(true); 
+			break ;
+			}
+			// adjust settings and launch generation in a separate thread
+			mazew = Constants.SKILL_X[skill];
+			mazeh = Constants.SKILL_Y[skill];
+			if(this.method == 2)
+				mazebuilder.build(this, mazew, mazeh, 0, Constants.SKILL_PARTCT[skill]);
+			else
+				mazebuilder.build(this, mazew, mazeh, Constants.SKILL_ROOMS[skill], Constants.SKILL_PARTCT[skill]);
+			// mazebuilder performs in a separate thread and calls back by calling newMaze() to return newly generated maze
+		}
+		
+		/**
+		 * Call back method for MazeBuilder to communicate newly generated maze as reaction to a call to build()
+		 * @param root node for traversals, used for the first person perspective
+		 * @param cells encodes the maze with its walls and border
+		 * @param dists encodes the solution by providing distances to the exit for each position in the maze
+		 * @param startx current position, x coordinate
+		 * @param starty current position, y coordinate
+		 */
+		@Override
+		public void newMaze(BSPNode root, Cells c, Distance dists, int startx, int starty) {
+			if (Cells.deepdebugWall)
+			{   // for debugging: dump the sequence of all deleted walls to a log file
+				// This reveals how the maze was generated
+				c.saveLogFile(Cells.deepedebugWallFileName);
+			}
+			// adjust internal state of maze model
+			mazecells = c ;
+			mazedists = dists;
+			seencells = new Cells(mazew+1,mazeh+1) ;
+			rootnode = root ;
+			setCurrentDirection(1, 0) ;
+			setCurrentPosition(startx,starty) ;
+			walkStep = 0;
+
+			// notify viewers
+
+		}
+		
+		public Distance getDistance(){
+			return mazedists;
+		}
+
+
+		////////////////////////////// Actions that can be performed on the maze model ///////////////////////////
+		private void setCurrentPosition(int x, int y)
+		{
+			px = x ;
+			py = y ;
+		}
+		private void setCurrentDirection(int x, int y)
+		{
+			dx = x ;
+			dy = y ;
+		}
+		
+		private void walkFinish(int dir) {
+			setCurrentPosition(px + dir*dx, py + dir*dy) ;
+
+			walkStep = 0;
+
+		}
+		private void rotateStep() {
+			angle = (angle+1800) % 360;
+			viewdx = (int) (Math.cos(radify(angle))*(1<<16));
+			viewdy = (int) (Math.sin(radify(angle))*(1<<16));
+		}
+
+
+		synchronized public void walk(int dir) {
+			if (!checkMove(dir))
+				return;
+			for (int step = 0; step != 4; step++) {
+				walkStep += dir;
+			}
+			walkFinish(dir);
+		}
+
+
+}

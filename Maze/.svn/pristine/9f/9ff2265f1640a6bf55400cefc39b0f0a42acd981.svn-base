@@ -1,0 +1,114 @@
+package falstad;
+
+import java.awt.*;
+public class GraphicsWrapper extends MazePanel {
+	
+	public Graphics gc;
+	
+	RangeSet rset ;
+	int viewx ; // current position for view, x coordinate, calculated in redraw_play
+	int viewy ; // current position for view, y coordinate, calculated in redraw_play
+	// view direction (view_dx,view_dy)
+	int view_dx ; // set in redraw_play
+	int view_dy ; // set in redraw_play
+	int angle = 0 ;  // set in redraw_play	int view_width = 400;
+	int view_width = 400;
+	int view_height = 400;
+	int map_unit = 128;
+	int step_size = map_unit/4;
+	// map scale may be adjusted by user input, controlled in Maze
+	int map_scale = 10 ;
+	// shared data structures
+	
+	int traverse_node_ct;
+	int traverse_ssector_ct;
+	int drawrect_ct ;
+	int drawrect_late_ct ;
+	int drawrect_segment_ct ;
+	int nesting = 0;
+	
+	Point p;
+	Maze maze;
+	Color col;
+	
+	public GraphicsWrapper(){
+		
+	}
+	
+	public GraphicsWrapper(Maze maze){
+		this.maze = maze;
+		this.gc = maze.panel.getBufferGraphics();
+	}
+	/**
+	 * Draws the first person view on the screen during the game
+	 * @param gc graphics handler for the buffer image that this class draws on
+	 * @param px x coordinate of current position, only used to get viewx
+	 * @param py y coordinate of current position, only used to get viewy
+	 * @param view_dx view direction, x coordinate
+	 * @param view_dy view direction, y coordinate
+	 * @param rset
+	 * @param ang
+	 * @param walk_step, only used to get viewx and viewy
+	 * @param view_offset, only used to get viewx and viewy
+	 */
+	public void redraw(Graphics gc, int state, int px, int py, int view_dx, int view_dy, int walk_step, int view_offset, RangeSet rset, int ang) {
+		// if notified by model that state has changed
+		// Query model for parameters
+		//dbg("viewer.redraw called");
+		if (state != Constants.STATE_PLAY){
+			return ;
+		}
+		// new adjustment
+		this.gc = maze.panel.getBufferGraphics() ;
+
+		gc.setColor(Color.black);
+		gc.fillRect(0, 0, view_width, view_height/2);
+		// draw dark gray background on upper half
+		gc.setColor(Color.darkGray);
+		gc.fillRect(0, view_height/2, view_width, view_height/2);
+		// set color to white and draw what ever can be seen from the current position
+		gc.setColor(Color.white);
+		rset.set(0, view_width-1); // reset set of ranges to set with single new element (0,width-1)
+
+}
+	public Point getPoint(){
+		return p;
+	}
+	
+	public void setPoint(int x, int y){
+		p = new Point(x, y);
+	}
+	
+	public Graphics getGraphics(){
+		return gc;
+	}
+	
+	public void setGraphics(Graphics gw) {
+		gc = gw;
+	}
+	
+	public void setCol(int first, int second, int third){
+		this.col = new Color(first, second, third);
+	}
+	
+	public void setGraphicsColor(String nm){
+		switch(nm){
+		case "yellow":
+			gc.setColor(Color.yellow);
+		
+		case "red":
+			gc.setColor(Color.red);
+		
+		case "white":
+			gc.setColor(Color.white);
+		
+		case "gray":
+			gc.setColor(Color.gray);
+		}
+		
+	}
+	
+	public Color getColor(){
+		return col;
+	}
+}

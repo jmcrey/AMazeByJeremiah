@@ -1,0 +1,37 @@
+package edu.wm.cs.cs301.londynsmith.amazebylondynsmith.ui;
+
+import android.app.Activity;
+import android.app.Application;
+import android.content.Context;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import edu.wm.cs.cs301.londynsmith.amazebylondynsmith.R;
+import edu.wm.cs.cs301.londynsmith.amazebylondynsmith.falstad.GraphicsWrapper;
+import edu.wm.cs.cs301.londynsmith.amazebylondynsmith.falstad.Maze;
+
+public class MyActivity extends Application {
+	public Maze maze;
+	GraphicsWrapper gw;
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		maze = new Maze();
+	}
+	
+	public Maze getMaze(){
+		return maze;
+	}
+	
+	public GraphicsWrapper getGraphics(){
+		return maze.getGraphics();
+	}
+	
+	public void setGraphics(Context context){
+		gw = new GraphicsWrapper(context);
+		maze.setGraphics(gw);
+	}
+	
+
+
+}

@@ -1,0 +1,244 @@
+package falstad;
+
+import falstad.Robot.Direction;
+import falstad.Robot.Turn;
+import static org.junit.Assert.*;
+
+import java.util.Arrays;
+
+import org.junit.Test;
+
+public class BasicRobotTest {
+	
+	@Test
+	/**
+	 * Test the move method
+	 * 
+	 */
+	public void MoveForwardTest() {
+		///////////////////// Makes Maze //////////////////////////
+		MazeApplication testMaze = new MazeApplication("test/data/input.xml");
+		ManualDriver driver = new ManualDriver();
+		Robot robot = new BasicRobot(testMaze.maze);
+		robot.setMaze(testMaze.maze);
+		driver.setRobot(robot);	
+
+		try {
+			int[] curPos = robot.getCurrentPosition();
+			System.out.print(Arrays.toString(curPos));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			System.out.println("This will never be printed...");
+		}
+		////////////////////// Tests Moving 1 space //////////////////////////
+		try { 
+			((BasicRobot) robot).move = null;
+			driver.drive2Exit();
+			Thread.currentThread();
+			Thread.sleep(1000);
+			
+		}
+		catch (Exception e){
+			e.printStackTrace();
+		}
+
+			try {
+				////////////// Tests curPost, inside room, can see goal, is at goal, etc /////////
+				assertTrue(robot.distanceToObstacle(Direction.RIGHT) == 0);
+				
+				assertTrue(robot.getCurrentPosition()[0] == 5 && robot.getCurrentPosition()[1] == 0);
+				assertFalse(robot.isInsideRoom());
+				assertFalse(robot.canSeeGoal(Direction.FORWARD));
+				assertFalse(robot.isAtGoal());
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
+	}	
+	
+	
+	/**
+	 * Tests the distance methods based on a correct test of the forward sensor. 
+	 */
+	@Test
+	public void TestSensors() {
+		final int height = 10;
+		final int width = 10;
+		final int roomCt = 1;
+		final int pc = 10;
+		
+		int right = 0;
+		int forward = 0;
+		int left = 0;
+		int back = 0;
+		
+		MazeApplication newMaze = new MazeApplication();
+		MazeBuilder mazeBuilder = new MazeBuilder();
+		
+		mazeBuilder.build(newMaze.maze, width, height, roomCt, pc);
+		try{ mazeBuilder.buildThread.join();
+		
+		} 	catch (Exception e) {System.out.println("DARN");	
+			}
+		
+		BasicRobot robot = new BasicRobot(newMaze.maze);
+		
+		
+		
+		
+		try {
+			forward = robot.distanceToObstacle(Direction.FORWARD);			
+		} catch (Exception e) {
+			System.out.println("This will never be called");
+		}
+		
+		try { robot.rotate(Turn.RIGHT);
+		} catch (Exception e) {System.out.println("Bad Dir!");
+		}
+		try {
+			right = robot.distanceToObstacle(Direction.RIGHT);			
+		} catch (Exception e) {
+			System.out.println("This will never be called");
+		}
+		assertTrue(right == forward);
+		
+		try { robot.rotate(Turn.RIGHT);
+		} catch (Exception e) {System.out.println("Bad Dir!");
+		}
+		try {
+			back = robot.distanceToObstacle(Direction.BACKWARD);			
+		} catch (Exception e) {
+			System.out.println("This will never be called");
+		}
+		assertTrue(back == forward);
+		
+		try { robot.rotate(Turn.RIGHT);
+		} catch (Exception e) {System.out.println("Bad Dir!");
+		}
+		try {
+			left = robot.distanceToObstacle(Direction.LEFT);			
+		} catch (Exception e) {
+			System.out.println("This will never be called");
+		}
+		assertTrue(left == forward);
+	}
+
+
+	@Test
+	public void testHasStopped(){
+		///////////////////// Makes Maze //////////////////////////
+		MazeApplication testMaze = new MazeApplication("test/data/input.xml");
+		ManualDriver driver = new ManualDriver();
+		Robot robot = new BasicRobot(testMaze.maze);
+		robot.setMaze(testMaze.maze);
+		driver.setRobot(robot);	
+		
+		//////////////////// Actual Test ///////////////////
+		assertFalse(robot.hasStopped());
+	}
+	
+	@Test
+	public void movedPos(){
+		///////////////////// Makes Maze //////////////////////////
+		MazeApplication testNewMaze = new MazeApplication("test/data/input.xml");
+		ManualDriver driver2 = new ManualDriver();
+		Robot robot2 = new BasicRobot(testNewMaze.maze);
+		robot2.setMaze(testNewMaze.maze);
+		driver2.setRobot(robot2);
+		
+		int[] curPos = null;
+		try {
+			curPos = ((BasicRobot) robot2).getCurrentPosition();
+			Thread.currentThread();
+			Thread.sleep(1000);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println(Arrays.toString(curPos));
+		int[] nextPos = null;
+		try{
+			((BasicRobot) robot2).rotate(Turn.LEFT);
+			nextPos = ((BasicRobot) robot2).getCurrentPosition();
+			Thread.currentThread();
+			Thread.sleep(1000);
+		}
+		catch (Exception e ){
+			e.printStackTrace();
+		}
+		System.out.println(Arrays.toString(nextPos));
+	}
+	/**
+	 * Test the rotate method
+	 */
+	/**
+	 * Tests the rotate method from Basic Robot by checking direction robot faces after rotation.
+	 * Also tests exceptions thrown.
+	 * @throws UnsupportedArgumentException
+	 */
+	@Test
+	public void RotateTest() {
+		
+		////////////////// Makes Maze //////////////////////////
+		MazeApplication testMaze3 = new MazeApplication("test/data/input.xml");
+		ManualDriver driver = new ManualDriver();
+		Robot robot3 = new BasicRobot(testMaze3.maze);
+		robot3.setMaze(testMaze3.maze);
+		driver.setRobot(robot3);
+		int[] curDir = ((BasicRobot) robot3).getCurrentDirection();
+		System.out.println(Arrays.toString(curDir));
+		//////////////////////// Turn Right //////////////////////
+		try { 
+			((BasicRobot) robot3).move = Turn.RIGHT;
+			driver.drive2Exit();
+			Thread.currentThread();
+			Thread.sleep(1000);
+			
+		}
+		catch (Exception e){
+			e.printStackTrace();
+		}
+		
+		int[] rDir = robot3.getCurrentDirection();
+		System.out.println(Arrays.toString(rDir));
+		assertTrue(rDir[0] == 0 && rDir[1] == -1);
+		try {
+			assertTrue(robot3.distanceToObstacle(Direction.FORWARD) == 0);
+		} catch (UnsupportedOperationException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		///////////////////// Turn Left ///////////////////////
+		try { 
+			((BasicRobot) robot3).move = Turn.LEFT;
+			driver.drive2Exit();
+			Thread.currentThread();
+			Thread.sleep(1000);
+			
+		}
+		catch (Exception e){
+			e.printStackTrace();
+		}
+		
+		rDir = robot3.getCurrentDirection();
+		assertTrue(rDir[0] == 1 && rDir[1] == 0);
+		/////////////////////// Turn Around /////////////////////////
+		try { 
+			((BasicRobot) robot3).move = Turn.AROUND;
+			driver.drive2Exit();
+			Thread.currentThread();
+			Thread.sleep(1000);
+			
+		}
+		catch (Exception e){
+			e.printStackTrace();
+		}
+		
+		rDir = robot3.getCurrentDirection();
+		assertTrue(rDir[0] == -1 && rDir[1] == 0);
+	
+	}
+}
+
+

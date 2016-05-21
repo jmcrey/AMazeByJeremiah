@@ -1,0 +1,167 @@
+package falstad;
+
+import java.util.ArrayList;
+import java.util.Random;
+
+import falstad.Robot.Direction;
+import falstad.Robot.Turn;
+
+public class CuriousMouse extends ManualDriver {
+	
+	ArrayList<int[]> visitedTiles = new ArrayList<int[]>();
+	ArrayList<Turn> possTurns = new ArrayList<Turn>();
+	Turn next;
+	
+	/**
+	 * Assigns a robot platform to the driver. Not all robot configurations may be suitable such that the method 
+	 * will throw an exception if the robot does not match minimal configuration requirements, e.g. providing a sensor
+	 * to measure the distance to an object in a particular direction. 
+	 * @param r robot to operate
+	 * @throws UnsuitableRobotException if driver cannot operate the given robot
+	 */
+	public void setRobot(Robot r) {
+		robot = r;
+		((BasicRobot) robot).setDriver(this);
+		
+	}
+	
+	private boolean hasVisited(int nextPx, int nextPy){
+		for(int i = 0; i < visitedTiles.size(); i++){
+			int[] blah = visitedTiles.get(i);
+			if(blah[0] == nextPx && blah[1] == nextPy)
+				return true;
+		}
+		return false;
+	}
+	
+	
+	@Override
+	public boolean drive2Exit() throws Exception {
+		
+		 //Let's see the Maze
+		((BasicRobot) robot).maze.mapMode = true;
+		((BasicRobot) robot).maze.showSolution = true;
+		((BasicRobot) robot).maze.showMaze = !((BasicRobot) robot).maze.showMaze;
+		((BasicRobot) robot).maze.notifyViewerRedraw();
+		
+		while(robot.getBatteryLevel() > 0){
+			
+			int[] visited = ((BasicRobot) robot).getCurrentPosition();
+			visitedTiles.add(visited);
+			
+			if(((BasicRobot) robot).canSeeGoal(Direction.FORWARD)){
+				((BasicRobot)robot).maze.state = Constants.STATE_FINISH;
+				((BasicRobot)robot).maze.notifyViewerRedraw();
+				this.pathLength = 0;
+				return true;
+			}
+			
+			if(((BasicRobot) robot).canSeeGoal(Direction.RIGHT)){
+				((BasicRobot)robot).rotate(Turn.RIGHT);
+				((BasicRobot)robot).maze.state = Constants.STATE_FINISH;
+				((BasicRobot)robot).maze.notifyViewerRedraw();
+				this.pathLength = 0;
+				return true;
+			}
+			if(((BasicRobot) robot).canSeeGoal(Direction.LEFT)){
+				((BasicRobot)robot).rotate(Turn.LEFT);
+				((BasicRobot)robot).maze.state = Constants.STATE_FINISH;
+				((BasicRobot)robot).maze.notifyViewerRedraw();
+				this.pathLength = 0;
+				return true;
+			}
+
+			if(((BasicRobot) robot).distanceToObstacle(Direction.FORWARD) != 0 ){
+				possTurns.add(null);
+			}
+			
+			if(((BasicRobot) robot).distanceToObstacle(Direction.RIGHT) != 0 ){
+				possTurns.add(Turn.RIGHT);
+			}
+			
+			if(((BasicRobot) robot).distanceToObstacle(Direction.LEFT) != 0 ){
+				possTurns.add(Turn.LEFT);
+			}
+			
+			if(((BasicRobot) robot).distanceToObstacle(Direction.BACKWARD) != 0 ){
+				possTurns.add(Turn.AROUND);
+			}
+				
+				for(int i = 0; i < possTurns.size(); i++){
+						next = possTurns.get(i);
+						int curDx = ((BasicRobot) robot).getCurrentDirection()[0];
+						int curDy = ((BasicRobot) robot).getCurrentDirection()[1];
+						if(next == Turn.RIGHT){
+							// Right
+							int rightDx = curDy;
+							int rightDy = -curDx;
+							int nextPx = visited[0] + rightDx;
+							int nextPy = visited[1] + rightDy;
+							boolean hasVisited = hasVisited(nextPx, nextPy);
+							if(hasVisited == false)
+								break;
+							
+						}
+						
+						if(next == Turn.LEFT){
+							// Left
+							int leftDx = -curDy;
+							int leftDy = curDx;
+							int nextPx = visited[0] + leftDx;
+							int nextPy = visited[1] + leftDy;
+							boolean hasVisited = hasVisited(nextPx, nextPy);
+							if(hasVisited == false)
+								break;
+							
+						}
+						
+						if(next == Turn.AROUND){
+							// Around
+							int aroundDx = -curDx;
+							int aroundDy = -curDy;
+							int nextPx = visited[0] + aroundDx;
+							int nextPy = visited[1] + aroundDy;
+							boolean hasVisited = hasVisited(nextPx, nextPy);
+							if(hasVisited == false)
+								break;
+							
+						}
+						
+						if(next == null){
+							break;
+						}
+					}
+					
+
+			
+			if(next != null)
+				((BasicRobot) robot).rotate(next);
+			
+			((BasicRobot) robot).move(1);
+			possTurns.clear();
+			this.pathLength++;
+			
+			
+		}
+		robot.setBatteryLevel(0);
+		((BasicRobot)robot).maze.state = Constants.STATE_FINISH;
+		((BasicRobot)robot).maze.notifyViewerRedraw();
+		this.pathLength = 0;
+		return false;
+	}
+		
+	/**
+	 * Returns the total energy consumption of the journey
+	 */
+	public float getEnergyConsumption() {
+		return robot.getBatteryLevel();
+	}
+	
+	/**
+	 * Returns the total length of the journey in number of cells traversed. The initial position counts as 0. 
+	 */
+	public int getPathLength() {
+		return pathLength;
+	}	
+
+}

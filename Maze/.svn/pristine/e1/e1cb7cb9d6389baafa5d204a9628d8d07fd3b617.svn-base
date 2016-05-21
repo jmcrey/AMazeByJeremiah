@@ -1,0 +1,6 @@
+package falstad;
+
+import java.awt.*;
+public class GraphicsWrapper {
+
+}

@@ -1,0 +1,6 @@
+package falstad;
+
+public class CuriousMouse extends ManualDriver {
+	
+
+}

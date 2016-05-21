@@ -1,0 +1,16 @@
+package falstad;
+
+import java.util.Arrays;
+
+public class WizardTest {
+	
+	public void checkSolved() {
+		
+		////////////////// Makes Maze //////////////////////////
+		MazeApplication testMaze = new MazeApplication("test/data/input.xml");
+		RobotDriver driver = new Wizard();
+		Robot robot = new BasicRobot(testMaze.maze);
+		robot.setMaze(testMaze.maze);
+		driver.setRobot(robot);
+	}
+}

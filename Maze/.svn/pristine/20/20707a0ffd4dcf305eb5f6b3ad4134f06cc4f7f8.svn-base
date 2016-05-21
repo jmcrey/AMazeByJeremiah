@@ -1,0 +1,45 @@
+package falstad;
+
+public abstract class AutomaticDriver implements RobotDriver {
+	int pathLength;
+	Robot robot;
+	private int width;
+	private int height;
+	protected Distance distance;
+	private float baseBatteryLevel;
+
+	
+	@Override
+	public void setRobot(Robot r) {
+		robot = r;
+		baseBatteryLevel = robot.getBatteryLevel();
+	}
+
+
+	@Override
+	public void setDimensions(int width, int height) {
+		this.width = width;
+		this.height = height;
+	}
+
+	@Override
+	public void setDistance(Distance distance) {
+		this.distance = distance;
+	}
+
+	@Override
+	abstract public boolean drive2Exit() throws Exception;
+
+
+	@Override
+	public float getEnergyConsumption() {
+		return (baseBatteryLevel - robot.getBatteryLevel());
+	}
+
+
+	@Override
+	public int getPathLength() {
+		return pathLength;
+	}
+}
+

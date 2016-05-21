@@ -1,0 +1,192 @@
+package falstad;
+
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+public class GraphicsWrapper extends MazePanel {
+	
+	public Graphics gc;
+	
+	RangeSet rset ;
+	int viewx ; // current position for view, x coordinate, calculated in redraw_play
+	int viewy ; // current position for view, y coordinate, calculated in redraw_play
+	// view direction (view_dx,view_dy)
+	int view_dx ; // set in redraw_play
+	int view_dy ; // set in redraw_play
+	int angle = 0 ;  // set in redraw_play	int view_width = 400;
+	int view_width = 400;
+	int view_height = 400;
+	int map_unit = 128;
+	int step_size = map_unit/4;
+	// map scale may be adjusted by user input, controlled in Maze
+	int map_scale = 10 ;
+	// shared data structures
+	
+	int traverse_node_ct;
+	int traverse_ssector_ct;
+	int drawrect_ct ;
+	int drawrect_late_ct ;
+	int drawrect_segment_ct ;
+	int nesting = 0;
+	
+	//// RedrawTitle Necessities /////
+	Font largeBannerFont = new Font("TimesRoman", Font.BOLD, 48);
+	Font midBannerFont = new Font("TimesRoman", Font.BOLD, 16);
+	Font smallBannerFont = new Font("TimesRoman", Font.BOLD, 16);
+	
+	// Frames and components to reuse
+	JFrame frame ;
+	JComponent newContentPane ;
+	JButton button ;
+	
+	// Combo Box declarations
+	ComboBox drivers ;
+	ComboBox algs;
+	ComboBox levels;
+	
+	// Defaults for driver, algs, and difficulty
+	String driver = "Manual Driver";
+	String algorithm = "Standard";
+	int level = 0;
+	
+	Point p;
+	Maze maze;
+	Color col;
+	
+	public GraphicsWrapper(){
+		
+	}
+	
+	public GraphicsWrapper(Maze maze){
+		this.maze = maze;
+		this.gc = maze.panel.getBufferGraphics();
+	}
+	/**
+	 * Draws the first person view on the screen during the game
+	 * @param gc graphics handler for the buffer image that this class draws on
+	 * @param px x coordinate of current position, only used to get viewx
+	 * @param py y coordinate of current position, only used to get viewy
+	 * @param view_dx view direction, x coordinate
+	 * @param view_dy view direction, y coordinate
+	 * @param rset
+	 * @param ang
+	 * @param walk_step, only used to get viewx and viewy
+	 * @param view_offset, only used to get viewx and viewy
+	 */
+	public void redrawPerson(Graphics gc, int state, int px, int py, int view_dx, int view_dy, int walk_step, int view_offset, RangeSet rset, int ang) {
+		// if notified by model that state has changed
+		// Query model for parameters
+		//dbg("viewer.redraw called");
+		if (state != Constants.STATE_PLAY){
+			return ;
+		}
+		// new adjustment
+		this.gc = maze.panel.getBufferGraphics() ;
+
+		gc.setColor(Color.black);
+		gc.fillRect(0, 0, view_width, view_height/2);
+		// draw dark gray background on upper half
+		gc.setColor(Color.darkGray);
+		gc.fillRect(0, view_height/2, view_width, view_height/2);
+		// set color to white and draw what ever can be seen from the current position
+		gc.setColor(Color.white);
+		rset.set(0, view_width-1); // reset set of ranges to set with single new element (0,width-1)
+
+}
+	
+	public void redrawViewTitle(Graphics gc, Maze maze){
+		gc.setColor(Color.white);
+		gc.fillRect(0, 0, Constants.VIEW_WIDTH, Constants.VIEW_HEIGHT);
+		gc.setFont(largeBannerFont);
+		FontMetrics fm = gc.getFontMetrics();
+		gc.setColor(Color.red);
+		centerString(gc, fm, "MAZE", 100);
+		gc.setColor(Color.blue);
+		gc.setFont(smallBannerFont);
+		fm = gc.getFontMetrics();
+		centerString(gc, fm, "Please select from the box above.", 160);
+		centerString(gc, fm, "Choose an algorithm, difficulty level and driver.", 190);
+		centerString(gc, fm, "Some solve the maze automatically", 220);
+		gc.setColor(Color.red);
+		gc.setFont(midBannerFont);
+		centerString(gc, fm, "CLICK AN ARROW KEY TO START DRIVER", 300);
+		frame = maze.panel.frame;
+		newContentPane = maze.panel.newContentPane;
+		button = maze.panel.button;
+		
+		drivers = maze.panel.drivers;
+		algs = maze.panel.algs;
+		levels = maze.panel.levels;
+        ///////////////// GUI Initializer ///////////////////
+        frame.setVisible(true);
+        
+        button.addActionListener(new ActionListener(){
+        	public void actionPerformed(ActionEvent evt){
+        		frame.dispose();
+        		if(drivers.getInput() != null)
+        			driver = drivers.getInput();
+        		System.out.println(driver);
+        		if(algs.getInput() != null)
+        			algorithm = algs.getInput();
+        		System.out.println(algorithm);
+        		if(levels.getInput() != null)
+        			level = Integer.parseInt(levels.getInput());
+        		maze.reset(algorithm, driver, level);
+        		maze.build(level);
+        		maze.myApp.repaint();
+        	}
+        });
+	}
+	
+	private void centerString(Graphics g, FontMetrics fm, String str, int ypos) {
+		g.drawString(str, (Constants.VIEW_WIDTH-fm.stringWidth(str))/2, ypos);
+	}
+	
+	public Point getPoint(){
+		return p;
+	}
+	
+	public void setPoint(int x, int y){
+		p = new Point(x, y);
+	}
+	
+	public Graphics getGraphics(){
+		return gc;
+	}
+	
+	public void setGraphics(Graphics gw) {
+		gc = gw;
+	}
+	
+	public void setCol(int first, int second, int third){
+		this.col = new Color(first, second, third);
+	}
+	
+	public void setCol(int col){
+		this.col = new Color(col);
+	}
+	
+	public void setGraphicsColor(String nm){
+		if(nm.equals("red"))
+			this.getGraphics().setColor(Color.red);
+		
+		if(nm.equals("gray"))
+			gc.setColor(Color.gray);
+		
+		if(nm.equals("yellow"))
+			gc.setColor(Color.yellow);
+		
+		if(nm.equals("white"))
+			gc.setColor(Color.white);
+		
+		
+	}
+	
+	public Color getColor(){
+		return col;
+	}
+}

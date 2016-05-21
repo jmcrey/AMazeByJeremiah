@@ -1,0 +1,214 @@
+/**
+ * 
+ */
+package falstad;
+
+
+import java.awt.BorderLayout;
+import java.awt.Font;
+import java.awt.Panel;
+import java.awt.event.*;
+import java.awt.event.KeyListener;
+import java.io.File;
+
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+
+/**
+ * This class is a wrapper class to startup the Maze as a Java application
+ * 
+ *
+ * This code is refactored code from Maze.java by Paul Falstad, www.falstad.com, Copyright (C) 1998, all rights reserved
+ * Paul Falstad granted permission to modify and use code for teaching purposes.
+ * Refactored by Peter Kemper
+ */
+public class MazeApplication extends JFrame {
+
+	Maze maze ;
+	KeyListener kl ;
+	JFrame frame;
+	int level;
+	String driver;
+	String algorithm;
+	/**
+	 * Constructor
+	 */
+	public MazeApplication() {
+		super() ;
+        //Create and set up the window.
+		frame = new JFrame("Maze");
+        JLabel label = new JLabel("Welcome to the Maze. Choose:");
+        label.setFont(new Font("Times New Roman", 1, 20));
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        //Create and set up the content pane.
+        JComponent newContentPane = new JPanel(new BorderLayout());
+        newContentPane.add(label, BorderLayout.PAGE_START);
+        JComponent newContentPane2 = new JPanel(new BorderLayout());
+        JComponent newContentPane3 = new JPanel(new BorderLayout());
+        ////////// Combo Boxes ///////////////////
+        ComboBox drivers = new ComboBox("drivers");
+        ComboBox algs = new ComboBox("algorithms");
+        ComboBox levels = new ComboBox("levels");
+        newContentPane2.add(algs, BorderLayout.WEST);
+        newContentPane2.add(drivers, BorderLayout.CENTER);
+        newContentPane2.add(levels, BorderLayout.EAST);
+        // Adds it to the first panel in the center
+        newContentPane.add(newContentPane2, BorderLayout.CENTER);
+        
+        JButton button = new JButton("GO!");
+        newContentPane3.add(button);
+        newContentPane.add(newContentPane3,  BorderLayout.PAGE_END);
+
+        newContentPane.setOpaque(true); //content panes must be opaque
+        ///////////////// GUI Initializer ///////////////////
+        frame.setContentPane(newContentPane);
+        frame.pack();
+        frame.setVisible(true);
+        
+        button.addActionListener(new ActionListener(){
+        	public void actionPerformed(ActionEvent evt){
+        		frame.setVisible(false);
+        		if( drivers.getInput() != null)
+        			driver = drivers.getInput();
+        		else
+        			driver = "Manual Driver";
+        		if(algs.getInput() != null)
+        			algorithm = algs.getInput();
+        		else
+        			algorithm = "Standard";
+        		if(levels.getInput() != null)
+        			level = Integer.parseInt(levels.getInput());
+        		else
+        			level = 0;
+        		maze = new Maze(algorithm, driver, level);
+        		init();
+        	}
+        });
+        
+		//System.out.println("MazeApplication: maze will be generated with a randomized algorithm.");
+		//maze = new Maze() ;
+		//init() ;
+	}
+
+	/**
+	 * Constructor that loads a maze from a given file or uses a particular method to generate a maze
+	 */
+	public MazeApplication(String parameter) {
+		super() ;
+		if("Eller".equalsIgnoreCase(parameter)){
+			System.out.println("MazeApplication: generating random maze with Eller's algorithm");
+			maze = new Maze(2) ;
+			init() ;
+		}
+		else if ("Prim".equalsIgnoreCase(parameter))
+		{
+			System.out.println("MazeApplication: generating random maze with Prim's algorithm");
+			maze = new Maze(1) ;
+			init() ;
+		}
+		else if("Wizard".equalsIgnoreCase(parameter)){
+			maze = new Maze() ;
+			init();
+			MazeFileReader mfr = new MazeFileReader("test/data/input.xml") ;
+			maze.mazeh = mfr.getHeight() ;
+			maze.mazew = mfr.getWidth() ;
+			maze.driver = "Wizard";
+			maze.robotDriver = new Wizard();
+			maze.robot = new BasicRobot(maze);
+			((Wizard) maze.robotDriver).setRobot(maze.robot);
+			((BasicRobot) maze.robot).setDriver(maze.robotDriver);
+			Distance d = new Distance(mfr.getDistances()) ;
+			maze.newMaze(mfr.getRootNode(),mfr.getCells(),d,mfr.getStartX(), mfr.getStartY()) ;
+		}
+		else if("WallFollower".equalsIgnoreCase(parameter)){
+			maze = new Maze() ;
+			init();
+			MazeFileReader mfr = new MazeFileReader("test/data/input.xml") ;
+			maze.mazeh = mfr.getHeight() ;
+			maze.mazew = mfr.getWidth() ;
+			maze.driver = "Wall Follower";
+			maze.robotDriver = new WallFollower();
+			maze.robot = new BasicRobot(maze);
+			((WallFollower)maze.robotDriver).setRobot(maze.robot);
+			((BasicRobot) maze.robot).setDriver(maze.robotDriver);
+			Distance d = new Distance(mfr.getDistances()) ;
+			maze.newMaze(mfr.getRootNode(),mfr.getCells(),d,mfr.getStartX(), mfr.getStartY()) ;
+		}
+
+		else
+		{
+			File f = new File(parameter) ;
+			if (f.exists() && f.canRead())
+			{
+				System.out.println("MazeApplication: loading maze from file: " + parameter);
+				// TODO: adjust this to mazeview
+				maze = new Maze() ;
+				init();
+				MazeFileReader mfr = new MazeFileReader(parameter) ;
+				maze.mazeh = mfr.getHeight() ;
+				maze.mazew = mfr.getWidth() ;
+				Distance d = new Distance(mfr.getDistances()) ;
+				maze.newMaze(mfr.getRootNode(),mfr.getCells(),d,mfr.getStartX(), mfr.getStartY()) ;
+			}
+			else
+			{
+				System.out.println("MazeApplication: unknown parameter value: " + parameter + " ignored, operating in default mode.");
+				maze = new Maze() ;
+				init();
+			}
+		}
+		
+		
+
+	}
+	/**
+	 * Initializes some internals and puts the game on display.
+	 */
+	public void init() {
+		add(maze.getPanel()) ;
+		maze.setMyApp(this);
+		maze.panel.makeGUI();
+		kl = new SimpleKeyListener(this, maze) ;
+		addKeyListener(kl) ;
+		
+		
+		setSize(400, 400) ;
+		setVisible(true) ;
+		
+		// focus should be on the JFrame of the MazeApplication and not on the maze panel
+		// such that the SimpleKeyListener kl is used
+		//maze.setFocusable(false) ; // happens internally on MazePanel
+		setFocusable(true) ;
+		maze.build(level);
+	}
+	
+
+
+	
+	/**
+	 * Main method to launch Maze as a java application.
+	 * The application can be operated in two ways. The intended normal operation is to provide no parameters
+	 * and the maze will be generated by a particular algorithm. If a filename is given, the maze will be loaded
+	 * from that file. The latter option is useful for development to check particular mazes.
+	 * @param args is optional, first parameter is a filename with a given maze
+	 */
+	public static void main(String[] args) {
+		MazeApplication a ; 
+		switch (args.length) {
+		case 1 : a = new MazeApplication(args[0]);
+		break ;
+		case 0 : 
+		default : a = new MazeApplication() ;
+		break ;
+		}
+		a.repaint() ;
+	}
+	
+
+}

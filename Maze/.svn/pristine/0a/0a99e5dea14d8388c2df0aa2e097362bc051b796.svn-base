@@ -1,0 +1,113 @@
+package falstad;
+
+import falstad.Robot.Direction;
+import falstad.Robot.Turn;
+
+public class WallFollower extends AutomaticDriver {
+	
+	BasicRobot robot;
+	public int pathLength = 0;
+	
+	public WallFollower(){
+		super();
+	}
+	
+	public void setRobot(BasicRobot robot){
+		this.robot = robot;
+		robot.setDriver(this);
+	}
+	
+	@Override
+	public boolean drive2Exit() throws Exception {
+		((BasicRobot) robot).maze.mapMode = true;
+		((BasicRobot) robot).maze.showSolution = true;
+		((BasicRobot) robot).maze.showMaze = !((BasicRobot) robot).maze.showMaze;
+		((BasicRobot) robot).maze.notifyViewerRedraw();
+	
+		
+		
+		while ((robot.getBatteryLevel() > 0)){
+			
+			if (robot.canSeeGoal(Direction.LEFT) || robot.canSeeGoal(Direction.FORWARD)
+					|| robot.canSeeGoal(Direction.RIGHT)){
+				if (robot.canSeeGoal(Direction.LEFT)){
+					if(robot.getBatteryLevel() > 5){
+						robot.rotate(Turn.RIGHT);
+						((BasicRobot)robot).maze.state = Constants.STATE_FINISH;
+						((BasicRobot)robot).maze.notifyViewerRedraw();
+						this.pathLength = 0;
+						return true;
+					}
+
+				}
+				else if (robot.canSeeGoal(Direction.RIGHT)){
+					if(robot.getBatteryLevel() > 5){
+						robot.rotate(Turn.LEFT);
+						((BasicRobot)robot).maze.state = Constants.STATE_FINISH;
+						((BasicRobot)robot).maze.notifyViewerRedraw();
+						this.pathLength = 0;
+						return true;
+					}
+				}
+				else if(robot.canSeeGoal(Direction.FORWARD)){
+					if(robot.getBatteryLevel() > 5){						
+						((BasicRobot)robot).maze.state = Constants.STATE_FINISH;
+						((BasicRobot)robot).maze.notifyViewerRedraw();
+						this.pathLength = 0;
+						return true;
+					}
+				}
+			}
+			
+			if ((robot.distanceToObstacle(Robot.Direction.FORWARD) == 0) && (robot.distanceToObstacle(Robot.Direction.RIGHT) == 0)){
+				if (robot.getBatteryLevel() < 8){
+					break;
+				}
+				robot.rotate(Turn.RIGHT);
+				robot.move(1);
+				this.pathLength += 1;
+			}
+			
+			else if ((robot.distanceToObstacle(Robot.Direction.RIGHT) != 0)){
+				if (robot.getBatteryLevel() < 8){
+					break;
+				}
+				robot.rotate(Turn.LEFT);
+				robot.move(1);
+				this.pathLength += 1;
+			}
+			
+			else{
+				if (robot.getBatteryLevel() < 5){
+					break;
+				}
+				robot.move(1);
+				this.pathLength += 1;
+			}
+			
+			int[] curPosition = robot.getCurrentPosition();
+			if (((BasicRobot)robot).maze.isEndPosition(curPosition[0], curPosition[1])){
+				((BasicRobot)robot).maze.state = Constants.STATE_FINISH;
+				((BasicRobot)robot).maze.notifyViewerRedraw();
+				this.pathLength = 0;
+				return true;
+			}
+		}
+		robot.setBatteryLevel(0);
+		((BasicRobot)robot).maze.state = Constants.STATE_FINISH;
+		((BasicRobot)robot).maze.notifyViewerRedraw();
+		this.pathLength = 0;
+		return false;
+	}
+	
+	public float getEnergyConsumption() {
+		// TODO Auto-generated method stub
+		return robot.getBatteryLevel();
+	}
+	
+	public int getPathLength() {
+		// TODO Auto-generated method stub
+		return this.pathLength;
+	}
+}
+	

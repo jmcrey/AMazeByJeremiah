@@ -1,0 +1,108 @@
+package falstad;
+
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+
+public class GraphicsWrapper extends MazePanel {
+	/// Main object ever used always and forever.
+	public Graphics gc;
+
+	//// RedrawTitle Necessities /////
+	Font largeBannerFont = new Font("TimesRoman", Font.BOLD, 48);
+	Font midBannerFont = new Font("TimesRoman", Font.BOLD, 16);
+	Font smallBannerFont = new Font("TimesRoman", Font.BOLD, 16);
+
+	Point p;
+	Maze maze;
+	Color col;
+	
+	public GraphicsWrapper(){
+		
+	}
+	
+	public GraphicsWrapper(Maze maze){
+		this.maze = maze;
+		this.gc = maze.panel.getBufferGraphics();
+	}	
+	
+	public Point getPoint(){
+		return p;
+	}
+	
+	public void setPoint(int x, int y){
+		p = new Point(x, y);
+	}
+	
+	public Graphics getGraphics(){
+		return gc;
+	}
+	
+	public void setGraphics(Graphics gw) {
+		gc = gw;
+	}
+	
+	public void setCol(int first, int second, int third){
+		this.col = new Color(first, second, third);
+	}
+	
+	public void setCol(int col){
+		this.col = new Color(col);
+	}
+	
+	public void setGraphicsColor(String nm){
+		if(nm.equals("red"))
+			this.getGraphics().setColor(Color.red);
+		
+		if(nm.equals("gray"))
+			gc.setColor(Color.gray);
+		
+		if(nm.equals("yellow"))
+			gc.setColor(Color.yellow);
+		
+		if(nm.equals("white"))
+			gc.setColor(Color.white);
+		
+		if(nm.equals("black"))
+			gc.setColor(Color.black);
+		
+		if(nm.equals("blue"))
+			gc.setColor(Color.blue);
+		
+		if(nm.equals("orange"))
+			gc.setColor(Color.orange);
+		
+		if(nm.equals("darkGray"))
+			gc.setColor(Color.darkGray);
+		
+	}
+	
+	public Color getColor(){
+		return col;
+	}
+	
+	public void setGraphicsFont(String nm){
+		if(nm.equals("large"))
+			gc.setFont(largeBannerFont);
+			
+		if(nm.equals("mid"))
+			gc.setFont(midBannerFont);
+		
+		if(nm.equals("small"))
+			gc.setFont(smallBannerFont);
+	}
+	
+	
+	public void centerString(FontMetrics fm, String str, int ypos){
+		gc.drawString(str, (Constants.VIEW_WIDTH-fm.stringWidth(str))/2, ypos);
+	}
+	
+	public FontMetrics getFontMetics(){
+		FontMetrics fm = gc.getFontMetrics();
+		return fm;
+	}
+}

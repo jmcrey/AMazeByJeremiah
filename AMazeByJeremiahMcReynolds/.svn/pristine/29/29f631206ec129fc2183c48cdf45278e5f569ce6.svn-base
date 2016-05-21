@@ -1,0 +1,189 @@
+package edu.wm.cs.cs301.londynsmith.amazebylondynsmith.ui;
+
+import android.app.Activity;
+import edu.wm.cs.cs301.londynsmith.amazebylondynsmith.R;
+import edu.wm.cs.cs301.londynsmith.amazebylondynsmith.falstad.*;
+import android.content.Context;
+import android.content.Intent;
+import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.Bundle;
+import android.transition.Scene;
+import android.util.AttributeSet;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Gallery.LayoutParams;
+import android.widget.RelativeLayout;
+import android.widget.Spinner;
+import android.widget.Toast;
+
+public class PlayActivity extends Activity {
+	
+	/**
+	 * This is the 3rd phase of the application. It contains 4 directional buttons, a spinner for
+	 * the final screen, a back button, and a textview. This is where the maze will actually be 
+	 * played. 
+	 */
+	// For the spinners
+	Spinner spin;
+	String spinValue; // what's going to be passed to Finish Activity.
+	private GraphicsWrapper gw;
+	Maze maze;
+	MyActivity mine;
+	
+	@Override
+	/**
+	 * On the creation of the page, this makes a back button, a spinner, and 4 directional other 
+	 * buttons. The Spinner contains how the finish screen is going to end. For example, no battery
+	 * will be passed to the finish screen and then the finish screen will use that to set the text
+	 * of it's textview. The back button sends the player to a maze activity (i.e. the beginning).
+	 * The 4 directional buttons aren't being use yet, but when the maze is implemented they're
+	 * going to be used to move the robot.
+	 * 
+	 */
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_play);
+		mine = (MyActivity) getApplicationContext();
+//		maze = new Maze();
+		gw = (GraphicsWrapper) findViewById(R.id.custom_view);
+		mine.getMaze().setGraphics(gw);
+		mine.getMaze().setRootnode();
+		mine.getMaze().notifyViewerRedraw();
+//		maze.setGraphics(blah);
+//		blah.setMaze(maze);
+//		maze.init();
+//		maze.build(0);
+//		maze.mazebuilder.start();
+//       try{
+//       	maze.mazebuilder.buildThread.join();
+//      }
+//     catch(InterruptedException e) {}
+//       maze.notifyViewerRedraw();
+//        blah.invalidate();
+//		gw.setMaze(mine.getMaze());
+//		gw.getMaze().mazebuilder.newMazeInit();
+//		gw.getMaze().getGraphics().invalidate();
+//		mine.getMaze().getGraphics().invalidate();
+//		addContentView(mine.getMaze().getGraphics(), new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+		spin = (Spinner) findViewById(R.id.spinner1);
+		spin.setOnItemSelectedListener(new SpinnerSelectedListener());
+		Button past = (Button) findViewById(R.id.button1);
+        past.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Toast.makeText(getApplicationContext(), "Sending you back to the beginning", Toast.LENGTH_SHORT).show();
+		        Intent i = new Intent(v.getContext(), AMazeActivity.class);
+		        startActivityForResult(i, 0);
+		        Log.v("Title: backButton", "Proceeding backward");				
+			}
+		});
+
+		Button next = (Button) findViewById(R.id.button2);
+       next.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Toast.makeText(getApplicationContext(), "Sending you to the finish", Toast.LENGTH_SHORT).show();
+		        Intent nextScreen = new Intent(PlayActivity.this, FinishActivity.class);
+		        nextScreen.putExtra("name", String.valueOf(spin.getSelectedItem()));
+		        startActivity(nextScreen);
+		        Log.v("Title: nextButton", "Proceeding to finish screen");				
+		}
+		});
+        
+        Button up = (Button) findViewById(R.id.button3);
+        up.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+		        Log.v("Title: upButton", "Robot moved up");
+		        mine.getMaze().keyDown(8);
+			}
+		});
+       Button down = (Button) findViewById(R.id.button6);
+       down.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+		        Log.v("Title: downButton", "Robot turned around");	
+		        mine.getMaze().keyDown(2);
+			}
+		});
+       Button left = (Button) findViewById(R.id.button4);
+        left.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+		        Log.v("Title: leftButton", "Robot turned left");
+		        mine.getMaze().keyDown(4);
+			}
+		});
+       Button right = (Button) findViewById(R.id.button5);
+        right.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+		        Log.v("Title: rightButton", "Robot turned right");	
+		        mine.getMaze().keyDown(6);
+			}
+		});
+	}
+	/**
+	 * I never make a change to this
+	 */
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.play, menu);
+		return true;
+	}
+	/**
+	 * I never make a change to this
+	 */
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle action bar item clicks here. The action bar will
+		// automatically handle clicks on the Home/Up button, so long
+		// as you specify a parent activity in AndroidManifest.xml.
+		int id = item.getItemId();
+		if (id == R.id.action_settings) {
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+	
+	public GraphicsWrapper getGraphics(){
+		return gw;
+	}
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event){
+		if(keyCode == KeyEvent.KEYCODE_DPAD_UP){
+			maze.keyDown(8);
+		}
+		if(keyCode == KeyEvent.KEYCODE_DPAD_DOWN){
+			maze.keyDown(2);
+		}
+		if(keyCode == KeyEvent.KEYCODE_DPAD_LEFT){
+			maze.keyDown(4);
+		}
+		if(keyCode == KeyEvent.KEYCODE_DPAD_RIGHT){
+			maze.keyDown(6);
+		}
+		return super.onKeyDown(keyCode, event);
+		
+	}
+
+	
+}

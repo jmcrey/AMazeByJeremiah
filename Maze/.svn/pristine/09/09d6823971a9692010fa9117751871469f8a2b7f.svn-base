@@ -1,0 +1,129 @@
+package falstad;
+
+import falstad.Robot.Turn;
+
+public class Wizard extends AutomaticDriver {
+	
+	BasicRobot robot;
+	public int pathLength = 0;
+	int[][] mazedists;
+	int[] theNewDir;
+	
+	public Wizard(){
+		super();
+	}
+	
+	public void setRobot(BasicRobot robot){
+		this.robot = robot;
+		robot.setDriver(this);
+	}
+	@Override
+	public boolean drive2Exit() throws Exception {
+		// TODO Auto-generated method stub
+		// Let's see the Maze
+		((BasicRobot) robot).maze.mapMode = true;
+		((BasicRobot) robot).maze.showSolution = true;
+		((BasicRobot) robot).maze.showMaze = !((BasicRobot) robot).maze.showMaze;
+		((BasicRobot) robot).maze.notifyViewerRedraw();
+		// Let's solve the Maze
+		mazedists = ((BasicRobot) robot).maze.mazedists.getDists();
+		int sx = ((BasicRobot) robot).maze.px;
+		int sy = ((BasicRobot) robot).maze.py;
+		int d = mazedists[sx][sy];
+		while (d > 1) {
+			// find the direction towards the end position
+			int n = getDirectionIndexTowardsSolution(sx, sy, d) ;
+			if (4 == n)
+			{
+				System.out.println("ERROR: draw_solution cannot identify direction towards solution!") ;
+				// TODO: perform proper error handling here
+				return false;
+			}
+			int dx = Constants.DIRS_X[n];
+			int dy = Constants.DIRS_Y[n];
+			System.out.println("This is matrix position " + dx + " " + dy);
+			/////////////////////////// Move Robot Here //////////////////////////////////
+			int curDx = ((BasicRobot) robot).getCurrentDirection()[0];
+			int curDy = ((BasicRobot) robot).getCurrentDirection()[1];
+			int[] curPos;
+			// Right
+			int rightDx = curDy;
+			int rightDy = -curDx;
+			
+			// Left
+			int leftDx = -curDy;
+			int leftDy = curDx;
+			
+			// Around
+			int aroundDx = -curDx;
+			int aroundDy = -curDy;
+			
+			if(dx == rightDx && dy == rightDy){
+				((BasicRobot) robot).rotate(Turn.AROUND);
+				curPos = ((BasicRobot) robot).getCurrentDirection();
+				curDx = curPos[0];
+				curDy = curPos[1];
+				System.out.println("Turned right " + curDx + " " + curDy);				
+			}
+			else if(dx == aroundDx && dy == aroundDy){
+				((BasicRobot) robot).rotate(Turn.RIGHT);
+				((BasicRobot) robot).move(1);
+				curPos = ((BasicRobot) robot).getCurrentDirection();
+				curDx = curPos[0];
+				curDy = curPos[1];
+				System.out.println("Turned around " + curDx + " " + curDy);
+			}
+			else if(dx == leftDx && dy == leftDy){
+				((BasicRobot) robot).rotate(Turn.LEFT);
+				curPos = ((BasicRobot) robot).getCurrentDirection();
+				curDx = curPos[0];
+				curDy = curPos[1];
+				System.out.println("Turned left " + curDx + " " + curDy);
+			}
+			else { 
+				((BasicRobot) robot).move(1);
+				curPos = ((BasicRobot) robot).getCurrentDirection();
+				curDx = curPos[0];
+				curDy = curPos[1];
+				System.out.println("Moved " + curDx + " " + curDy);
+				this.pathLength += 1;
+			}
+			int dn = mazedists[sx+dx][sy+dy];
+			// Increments the while loop and current position
+			sx += dx;
+			sy += dy;
+			d = dn;
+		}
+		for (int i = 0; i < mazedists.length; i++){
+			for(int j = 0; j < mazedists.length; j++){
+				System.out.println(mazedists[i][j]);
+			}
+		}
+		return false;
+	}
+		
+	public int getDirectionIndexTowardsSolution(int x, int y, int d) {
+		for (int n = 0; n < 4; n++) {
+			if (((BasicRobot) robot).maze.mazecells.hasMaskedBitsTrue(x,y,Constants.MASKS[n]))
+				continue;
+				int dx = Constants.DIRS_X[n];
+				int dy = Constants.DIRS_Y[n];
+				int dn = mazedists[x+dx][y+dy];
+				if (dn < d)
+					return n ;
+		}
+		return 4 ;
+	}
+	
+	public int getPathLength() {
+		// TODO Auto-generated method stub
+		return this.pathLength;
+	}
+	
+	public float getEnergyConsumption() {
+		// TODO Auto-generated method stub
+		return robot.getBatteryLevel();
+	}
+	
+
+}

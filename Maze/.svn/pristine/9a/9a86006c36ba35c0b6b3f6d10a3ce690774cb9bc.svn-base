@@ -1,0 +1,147 @@
+package falstad;
+
+public class BasicRobot implements Robot {
+	//Basic Parts
+	public int battery;
+	public boolean senFront;
+	public boolean senLeft;
+	public boolean senRight;
+	public boolean senBack;
+	public boolean moving;
+	
+	//Positions
+	public int[] position;
+	public Maze maze;
+	public int degree;
+	
+	//Costs
+	public final int rotateCost = 3;
+	public final int senseCost = 1;
+	public final int moveCost = 5;
+	
+	public BasicRobot(Maze currMaze){
+		//Basic Parts initialize
+		battery = 2500;
+		senFront = true;
+		senLeft = true;
+		senRight = true;
+		senBack = true;
+		moving = true;
+		
+		//Positions initialized and starting point
+		position = new int[2];
+		position[0] = maze.px;
+		position[1] = maze.py;
+		int[] direction = {maze.dx, maze.dy};
+		if(direction[0] == 1 && direction[1] == 0)
+			degree = 0;
+		else if(direction[0] == 0 && direction[0] == 1)
+			degree = 90;
+		else if(direction[0] == 0 && direction[0] == -1)
+			degree = 270;
+		else
+			degree = 180;
+		//Maze done
+		maze = currMaze;
+		
+		
+		
+	}
+
+	@Override
+	public void rotate(Turn turn) throws Exception {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void move(int distance) throws Exception {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public int[] getCurrentPosition() throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setMaze(Maze maze) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public boolean isAtGoal() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean canSeeGoal(Direction direction) throws UnsupportedOperationException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean isInsideRoom() throws UnsupportedOperationException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean hasRoomSensor() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public int[] getCurrentDirection() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public float getBatteryLevel() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void setBatteryLevel(float level) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public float getEnergyForFullRotation() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public float getEnergyForStepForward() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public boolean hasStopped() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public int distanceToObstacle(Direction direction) throws UnsupportedOperationException {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public boolean hasDistanceSensor(Direction direction) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+}

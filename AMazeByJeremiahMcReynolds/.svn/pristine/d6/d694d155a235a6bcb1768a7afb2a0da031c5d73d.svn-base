@@ -1,0 +1,79 @@
+package edu.wm.cs.cs301.londynsmith.amazebylondynsmith.falstad;
+
+//import java.awt.BorderLayout;
+//import java.awt.Color;
+//import java.awt.Font;
+//import java.awt.Graphics;
+//import java.awt.Image;
+//import java.awt.Panel;
+//import java.awt.event.WindowEvent;
+
+//import javax.swing.JButton;
+//import javax.swing.JComponent;
+//import javax.swing.JFrame;
+//import javax.swing.JLabel;
+//import javax.swing.JPanel;
+
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.util.AttributeSet;
+import android.view.View;
+
+public class MazePanel extends View  {
+	/* Panel operates a double buffer see
+	 * http://www.codeproject.com/Articles/2136/Double-buffer-in-standard-Java-AWT
+	 * for details
+	 */
+	Canvas bufferImage ;
+	
+	// Frames and components to reuse
+//	JFrame frame;
+//	JComponent newContentPane;
+//	JButton button;
+	
+	// Combo Box declarations
+//	ComboBox drivers;
+//	ComboBox algs;
+//	ComboBox levels;
+	
+	
+	public MazePanel(Context context, AttributeSet attrs) {
+		super(context, attrs) ;
+		this.setFocusable(false) ;
+	}
+	
+	public void update(Canvas g) {
+		draw(g) ;
+	}
+	
+	public void paint(Canvas g) {
+//		g.drawBitmap(bufferImage,0,0,null) ;
+	}
+	/*
+	public void setBufferImage(Image buffer) {
+		bufferImage = buffer ;
+	}
+	*/
+	public void initBufferImage() {
+//		bufferImage = createImage(Constants.VIEW_WIDTH, Constants.VIEW_HEIGHT);
+		if (null == bufferImage)
+		{
+			System.out.println("Error: creation of buffered image failed, presumedly container not displayable");
+		}
+	}
+//	public Graphics getBufferGraphics() {
+//		if (null == bufferImage)
+//			initBufferImage() ;
+//		return bufferImage.getGraphics() ;
+//	}
+//	public void update() {
+//		paint(getGraphics()) ;
+//	}
+	
+/**
+	public Color getColor(){
+		
+	}
+	**/
+}

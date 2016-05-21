@@ -1,0 +1,61 @@
+package falstad;
+
+import static org.junit.Assert.*;
+
+import java.util.Arrays;
+
+import org.junit.Test;
+
+import falstad.Robot.Turn;
+
+public class WizardTest {
+
+	
+	@Test
+	public void checkFailed() {
+		////////////////// Makes Maze //////////////////////////
+		MazeApplication testMaze = new MazeApplication("Wizard");
+		RobotDriver driver = new Wizard();
+		Robot robot = new BasicRobot(testMaze.maze);
+		((BasicRobot) robot).setMaze(testMaze.maze);
+		driver.setRobot((BasicRobot)robot);
+		((BasicRobot) robot).setBatteryLevel(25);
+		boolean solved = true;
+
+		try { 
+			solved = driver.drive2Exit();
+			Thread.currentThread();
+			Thread.sleep(1000);
+			
+		}
+		catch (Exception e){
+			e.printStackTrace();
+		}
+		
+		assertFalse(solved);
+	}
+	
+	@Test
+	public void checkSolved() {
+		////////////////// Makes Maze //////////////////////////
+		MazeApplication testMaze2 = new MazeApplication("Wizard");
+		RobotDriver driver2 = new Wizard();
+		Robot robot2 = new BasicRobot(testMaze2.maze);
+		((BasicRobot) robot2).setMaze(testMaze2.maze);
+		driver2.setRobot((BasicRobot)robot2);
+		boolean solved = false;
+	
+		try { 
+			solved = driver2.drive2Exit();
+			Thread.currentThread();
+			Thread.sleep(1000);
+			
+		}
+		catch (Exception e){
+			e.printStackTrace();
+		}
+		
+		assertTrue(solved);
+	}
+
+}
