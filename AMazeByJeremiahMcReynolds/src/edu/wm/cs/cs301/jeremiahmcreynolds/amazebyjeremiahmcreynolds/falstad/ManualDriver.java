@@ -1,0 +1,126 @@
+package edu.wm.cs.cs301.jeremiahmcreynolds.amazebyjeremiahmcreynolds.falstad;
+
+import android.os.Handler;
+import android.os.Message;
+import edu.wm.cs.cs301.jeremiahmcreynolds.amazebyjeremiahmcreynolds.falstad.Robot.Direction;
+import edu.wm.cs.cs301.jeremiahmcreynolds.amazebyjeremiahmcreynolds.falstad.Robot.Turn;
+
+public class ManualDriver implements RobotDriver {
+	
+	public static Robot robot;
+	public Distance distance;
+	public int pathLength = 0; // keeps track of the length
+	private int width;
+	private int height;
+	private float initBattery;
+	private Turn move; // used by drive to exit to keep track of what's being done to robot.
+	// Handles all the animations that the user see's
+	static Handler handle = new Handler(){
+		@Override
+		public void handleMessage(Message msg){
+			if(msg.what == 0){
+				((BasicRobot) robot).maze.notifyViewerRedraw();
+				((BasicRobot) robot).maze.getPlayActivity().update();
+			}
+		}
+	};
+	
+	/**
+	 * Creates the robot that manual driver uses
+	 */
+	@Override
+	public void setRobot(Robot r) {
+		// TODO Auto-generated method stub
+		robot = r;
+		((BasicRobot) robot).setDriver(this);
+	}
+	/**
+	 * sets up the maze's dimensions
+	 */
+	@Override
+	public void setDimensions(int width, int height) {
+		// TODO Auto-generated method stub
+		this.width = width;
+		this.height = height;
+	}
+	/**
+	 * Sets the distance 
+	 */
+	@Override
+	public void setDistance(Distance distance) {
+		// TODO Auto-generated method stub
+		this.distance = distance;
+	}
+	/**
+	 * Utilizes the robot's movement methods to move. It checks what move it's going to do
+	 * by using the move variable both in this class and the robot class.
+	 * This is called in the keydown method of the Maze class. 
+	 */
+	@Override
+	public boolean drive2Exit() throws Exception {
+		// TODO Auto-generated method stub
+		if (robot.hasStopped() == true){
+			throw new Exception();
+		}
+		
+		else{
+			move = ((BasicRobot) robot).getCurMove();
+			// Moves forward if move is null
+			if (move == null){
+				this.pathLength += 1;
+				robot.move(1);
+				handle.sendEmptyMessage(0);
+			}
+			// Turns around if move that's the input
+			if (move == Turn.AROUND){
+				robot.rotate(Turn.AROUND);
+				handle.sendEmptyMessage(0);
+			}
+			// Turns the robot left
+			if (move == Turn.LEFT){
+				robot.rotate(Turn.LEFT);
+				handle.sendEmptyMessage(0);
+			}
+			// Turns the robot right
+			if (move == Turn.RIGHT){
+				robot.rotate(Turn.RIGHT);
+				handle.sendEmptyMessage(0);
+			}
+			// Checks if the robot is at the goal
+			if (((BasicRobot)robot).canSeeGoal(Direction.FORWARD) == true){
+				((BasicRobot)robot).maze.state = Constants.STATE_FINISH;
+//				((BasicRobot)robot).maze.notifyViewerRedraw();
+				handle.sendEmptyMessage(0);
+				((BasicRobot) robot).maze.setCompleted(true); // moves the screen to finish
+				return true;
+			}
+			// almost never called
+		}
+		if(((BasicRobot) robot).getBatteryLevel() < 8)
+			((BasicRobot) robot).maze.setCompleted(false);
+		return false;
+	}
+	/**
+	 * Returns the amount of energy used and displayed on the Final screen.
+	 */
+	@Override
+	public float getEnergyConsumption() {
+		// TODO Auto-generated method stub
+		return robot.getBatteryLevel();
+	}
+	/**
+	 * Returns the path traveled by the robot. Only incremented by drive2Exit method.
+	 * This is displayed on the final screen.
+	 */
+	@Override
+	public int getPathLength() {
+		// TODO Auto-generated method stub
+		return this.pathLength;
+	}
+	
+	@Override
+	public void setPathLength(int length){
+		((BasicRobot)robot).maze.robotDriver.setPathLength(length);
+	}
+
+}

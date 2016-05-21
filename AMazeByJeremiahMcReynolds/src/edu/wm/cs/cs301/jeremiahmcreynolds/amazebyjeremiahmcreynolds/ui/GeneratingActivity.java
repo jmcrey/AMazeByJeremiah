@@ -1,0 +1,216 @@
+package edu.wm.cs.cs301.jeremiahmcreynolds.amazebyjeremiahmcreynolds.ui;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.ProgressBar;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+import edu.wm.cs.cs301.jeremiahmcreynolds.amazebyjeremiahmcreynolds.R;
+import edu.wm.cs.cs301.jeremiahmcreynolds.amazebyjeremiahmcreynolds.falstad.GraphicsWrapper;
+import edu.wm.cs.cs301.jeremiahmcreynolds.amazebyjeremiahmcreynolds.falstad.Maze;
+
+public class GeneratingActivity extends Activity {
+	/**
+	 * This is the most involved class as it is the 2nd in the process and generates the maze that
+	 * the player will play. There is a progress bar, 3 buttons (back button, play button, and 
+	 * compile button), a spinner, and 3 check boxes.
+	 */
+	// This is all stuff for the progress bar
+	ProgressBar bar;
+	TextView text;
+	int progressStatus;
+	Handler handler = new Handler();
+	
+	//Buttons and spinners
+	Button next;
+	Button compile;
+	Spinner spin;
+	
+	// Check boxes
+	CheckBox showMaze;
+	CheckBox showSolution;
+	CheckBox showWalls;
+	
+	// For the maze stuff
+	MyActivity mine;
+	Maze maze;
+	GraphicsWrapper gw;
+	public String algorithm;
+	public int level;
+	public String driver;
+	
+	/**
+	 * Initially, this class will only have the 3 check boxes, a spinner and a compile button. The
+	 * play button and progress bar will be hidden until the user has selected the options that
+	 * they want for the maze they will play and click the compile button. Once the compile button
+	 * is clicked, it will call the method that controls the progress bar, and it will show the 
+	 * progress bar progressing. Once it hits 100/100 the play button will appear and the user
+	 * will be able to click play which will send them to the play screen.
+	 */
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_generating);
+		Bundle extra = getIntent().getExtras();
+		algorithm = extra.getString("name");
+		level = extra.getInt("level");
+		mine = (MyActivity) getApplicationContext();
+		// Spinner listeners
+		spin = (Spinner) findViewById(R.id.spinner1);
+		spin.setOnItemSelectedListener(new SpinnerSelectedListener());
+		
+		//Makes the Progress Bar invisible until needed
+		bar = (ProgressBar) findViewById(R.id.progressBar1);
+		bar.setVisibility(bar.INVISIBLE);
+		// Makes the text for the progress bar invisible until needed
+		text = (TextView) findViewById(R.id.textView1);
+		text.setVisibility(text.INVISIBLE);
+		// Sets the listener for the compile button to generate the maze
+		compile = (Button) findViewById(R.id.button3);
+        compile.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				driver = String.valueOf(spin.getSelectedItem());
+				mine.getMaze().setMaze(algorithm, driver, level);
+				mine.getMaze().init();
+		        compile.setVisibility(compile.INVISIBLE);
+		        progressBar();
+				Toast.makeText(getApplicationContext(), "We're compiling the maze", Toast.LENGTH_SHORT).show();
+		        Log.v("Title: compileButton", "Compiling maze in the background");				
+			}
+		});
+		Button past = (Button) findViewById(R.id.button1);
+        past.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Toast.makeText(getApplicationContext(), "Sending you back to the beginning", Toast.LENGTH_SHORT).show();
+		        Intent i = new Intent(v.getContext(), AMazeActivity.class);
+		        startActivityForResult(i, 0);
+		        Log.v("Title: backButton", "Proceeding backward");				
+			}
+		});
+	}
+
+	/**
+	 * I never made a change to this auto-generated code.
+	 */
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.generating, menu);
+		return true;
+	}
+	
+	/**
+	 * I never made a change to this auto-generated code.
+	 */
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle action bar item clicks here. The action bar will
+		// automatically handle clicks on the Home/Up button, so long
+		// as you specify a parent activity in AndroidManifest.xml.
+		int id = item.getItemId();
+		if (id == R.id.action_settings) {
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+	/**
+	 * This will show the progress bar and, after the progress bar is at 100/100 it will show the 
+	 * play button. The idea of this code came from developer.android.
+	 */
+	private void progressBar(){
+		mine.getMaze().build(level);
+		bar.setVisibility(bar.VISIBLE);
+		text.setVisibility(text.VISIBLE);
+		mine.getMaze().mazebuilder.start();
+		  // Start long running operation in a background thread
+		new Thread(new Runnable() {
+		     public void run() {
+		    	synchronized(mine.getMaze()){
+		        	try{
+		        		mine.getMaze().wait();
+		        	}
+		        	catch (InterruptedException e) {}
+		        while(progressStatus < 100) {
+		        	progressStatus = mine.getMaze().getPercentValue();
+		    // Update the progress bar and display the current value in the text view
+		        	handler.post(new Runnable() {
+		        		public void run() {
+		        			bar.setProgress(progressStatus);
+		        			text.setText(progressStatus+"/"+ bar.getMax());
+		        		}
+		        	});
+
+		        	try {		        		
+		           // Sleep for 10 milliseconds. 
+		                         //Just to display the progress slowly
+		        		Thread.sleep(10);
+		        	} 
+		        	catch (InterruptedException e) {
+		           e.printStackTrace();
+		           }
+		        	
+		        }
+		    }
+		    	Looper.prepare();
+				Toast.makeText(getApplicationContext(), "Finished compiling", Toast.LENGTH_SHORT).show();
+				Log.v("finished", "Maze finished");
+		        Intent nextScreen = new Intent(GeneratingActivity.this, PlayActivity.class);
+		        startActivity(nextScreen);
+		        finish();
+		 }
+		}).start();	        
+	}
+	/**
+	 * This is the listener for the check boxes. Once they are clicked, it will show a toast saying
+	 * that they have been clicked and what the maze will look like now. The idea of this code came
+	 * from developer.android.
+	 * @param view
+	 */
+	public void onCheckboxClicked(View view) {
+	    // Checks if the maze view is checked.
+	    boolean checked = ((CheckBox) view).isChecked();
+	    
+	    // Check which checkbox was clicked
+	    switch(view.getId()) {
+	        case R.id.checkBox1:
+	            if (checked){
+	            	Toast.makeText(getApplicationContext(), "We'll show the maze", Toast.LENGTH_SHORT).show();
+	                Log.v("Title: showMaze", "We'll show the maze");
+	                mine.getMaze().mapMode = true;
+	                mine.getMaze().showMaze = true;
+	            }
+	            break;
+	        case R.id.checkBox2:
+	            if (checked){
+	            	Toast.makeText(getApplicationContext(), "We'll show the maze walls", Toast.LENGTH_SHORT).show();
+	            	Log.v("Title: showWalls", "We'll show the maze walls you've seen");
+	            	mine.getMaze().mapMode = true;
+	            	mine.getMaze().solving = true;
+	            }
+	            break;
+	        case R.id.checkBox3:
+	            if (checked){
+	            	Toast.makeText(getApplicationContext(), "We'll show the maze's solution", Toast.LENGTH_SHORT).show();
+	            	Log.v("Title: showSolution", "We'll show the maze's solution path");
+	            	mine.getMaze().mapMode = true;
+	            	mine.getMaze().showSolution = true;
+	            }
+	            break;	            
+	    }
+	}
+	
+}

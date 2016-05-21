@@ -1,0 +1,40 @@
+package edu.wm.cs.cs301.jeremiahmcreynolds.amazebyjeremiahmcreynolds.ui;
+
+import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.Toast;
+
+public class SpinnerSelectedListener implements OnItemSelectedListener {
+	/**
+	 * This is implemented for the use of spinners. It displays any item that the is selected
+	 * from a spinner that uses this as it's listener. I decided to make this because there
+	 * are multiple spinners in multiple activities. 
+	 */
+	
+	/**
+	 * This will show what the player selected in any given spinner
+	 */
+	@Override
+	public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+		// TODO Auto-generated method stub
+		Toast.makeText(parent.getContext(), 
+				"You selected : " + parent.getItemAtPosition(position).toString(),
+				Toast.LENGTH_SHORT).show();
+		Log.v("Title: You selected:", parent.getItemAtPosition(position).toString());
+	}
+	
+	/**
+	 * This will show the initial selection of the spinner.
+	 */
+	@Override
+	public void onNothingSelected(AdapterView<?> parent) {
+		// TODO Auto-generated method stub
+		Toast.makeText(parent.getContext(), 
+				"You selected: " + parent.getSelectedItem().toString(),
+				Toast.LENGTH_SHORT).show();
+		Log.v("Title: You selected:", parent.getSelectedItem().toString());
+	}
+
+}

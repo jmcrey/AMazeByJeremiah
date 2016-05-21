@@ -1,0 +1,399 @@
+package edu.wm.cs.cs301.jeremiahmcreynolds.amazebyjeremiahmcreynolds.falstad;
+
+
+public class BasicRobot implements Robot {
+
+	public float batteryLevel = 2500;
+	// Initialize all the sensors
+	private boolean hasRoomSensor = true;
+	private boolean senFront = true;
+	private boolean senBack = true;
+	private boolean senRight = true;
+	private boolean senLeft = true;
+	
+	// Making all the costs for moving, sensing and rotating
+	private final int senseCost = 1;
+	private final int rotateCost = 3;
+	private final int moveCost = 5;
+	
+	
+	// More or less random things that are necessary for implementation
+	Maze maze;
+	private int[] curPos;
+	private int[] curDir;
+	private Turn move; // Used to tell drive2Exit what to do
+	
+	
+	/**
+	 * Initialize Robot
+	 * @param currMaze
+	 */
+	public BasicRobot(Maze currMaze){
+		maze = currMaze;
+
+	}
+	/**
+	 * Sets a driver for the current robot
+	 * @param drive
+	 */
+	public void setDriver(RobotDriver drive){
+	}
+	/**
+	 * This method rotates the maze by using the maze's methods. It uses if statements to determine
+	 * what the input of the user is. Mostly this is only called by the Driver's drive2Exit() 
+	 * method - this is because of the way maze is implemented
+	 */
+	@Override
+	public void rotate(Turn turn) throws Exception {
+		// TODO Auto-generated method stub
+		
+		if (turn == Turn.AROUND && batteryLevel >= 2*(rotateCost)) {
+			maze.rotate(1);
+			maze.rotate(1);
+			setBatteryLevel(getBatteryLevel() - 2*(rotateCost)); 
+			curDir[0] = maze.getCurDirection()[0];
+			curDir[1] = maze.getCurDirection()[1];
+		}
+		
+		else if ((turn == Turn.LEFT || turn == Turn.RIGHT) && batteryLevel >= rotateCost){
+			if (turn == Turn.LEFT){
+				maze.rotate(1);
+				
+			}
+			if (turn == Turn.RIGHT){
+				maze.rotate(-1);
+				
+			}
+			
+			setBatteryLevel(getBatteryLevel() - rotateCost); 
+			curDir[0] = maze.dx;
+			curDir[1] = maze.dy;
+			
+		}
+		
+		
+		
+		else{
+			throw new Exception();
+		}	
+
+	}
+	/**
+	 * Again, this mostly uses the maze's walk method and we created our own get methods so we 
+	 * wouldn't have to retype all the px's and py's and such.
+	 */
+	@Override
+	public void move(int distance) throws Exception {
+		// TODO Auto-generated method stub
+
+		curPos[0] = maze.getCurPosition()[0]; 
+		curPos[1] = maze.getCurPosition()[1];
+		curDir[0] = maze.getCurDirection()[0];
+		curDir[1] = maze.getCurDirection()[1];
+		int distcount = 0;
+		
+		while (distcount != distance){
+			maze.walk(1);
+			setBatteryLevel(getBatteryLevel() - moveCost);
+			curPos[0] = maze.getCurPosition()[0];
+			curPos[1] = maze.getCurPosition()[1];
+
+			distcount += 1;
+		}
+		
+
+
+	}
+	/**
+	 * Returns the current position of the robot
+	 */
+	@Override
+	public int[] getCurrentPosition() throws Exception {
+		// TODO Auto-generated method stub
+		curPos = maze.getCurPosition();
+		
+		if (curPos[0] > maze.mazew || curPos[0] < 0 || curPos[1] > maze.mazeh || curPos[1] < 0){
+			throw new Exception();
+		}
+		
+		return curPos;
+	}
+	/**
+	 * This is super important because it sets up the actual maze that is used by the driver and
+	 * that the robot is in, setting up both the position and the direction of the robot.
+	 */
+	@Override
+	public void setMaze(Maze maze) {
+		// TODO Auto-generated method stub
+		//given a particular maze, set the robot's maze reference
+		this.maze = maze;
+		maze.setRobot(this);
+		curDir = maze.getCurDirection();
+		curPos = maze.getCurPosition();
+
+	}
+	/**
+	 * Checks to see if the current position of the robot is equal to the exit position of the
+	 * maze. Utilizes distance to exit and positions from the maze class.
+	 */
+	@Override
+	public boolean isAtGoal(){
+		// TODO Auto-generated method stub
+
+		int exitX =  maze.mazedists.getExitPosition()[0];
+		int exitY = maze.mazedists.getExitPosition()[1];
+		
+		int[] tileUp = {exitX, exitY - 1};
+		int[] tileDown = {exitX, exitY + 1};
+		int[] tileLeft = {exitX + 1, exitY};
+		int[] tileRight = {exitX - 1, exitY};
+		
+		int[] corner1 = {exitX + 1, exitY + 1};
+		int[] corner2 = {exitX + 1, exitY - 1};
+		int[] corner3 = {exitX - 1, exitY + 1};
+		int[] corner4 = {exitX - 1, exitY - 1};
+		
+		if (maze.isEndPosition(maze.getCurPosition()[0], maze.getCurPosition()[1])){
+			return true;
+		}
+		
+		else if (curPos == maze.mazedists.getExitPosition() || curPos == tileUp || curPos == tileDown
+				|| curPos == tileLeft || curPos == tileRight || curPos == corner1 ||
+				curPos == corner2 || curPos == corner3 || curPos == corner4){
+			return true;
+		}
+		
+		else{
+			return false;
+		}
+	}
+	/**
+	 * Checks to see if it can see the goal by using Integer.Max_value and distance to object 
+	 * method. 
+	 */
+	@Override
+	public boolean canSeeGoal(Direction direction) throws UnsupportedOperationException {
+		// TODO Auto-generated method stub
+		if (hasDistanceSensor(direction) == true){
+			if (distanceToObstacle(direction) == Integer.MAX_VALUE){
+				return true;
+			}
+			
+			return false;
+		}
+		
+		else {
+			throw new UnsupportedOperationException();
+		}	
+	}
+	/**
+	 * Checks to see if the robot is inside a room by using the cell's methods.
+	 */
+	@Override
+	public boolean isInsideRoom() throws UnsupportedOperationException {
+		// TODO Auto-generated method stub
+		if (hasRoomSensor()){
+			setBatteryLevel(getBatteryLevel() - senseCost);
+			boolean inRoom = maze.mazecells.isInRoom(curPos[0], curPos[1]);
+			if (inRoom){
+				return true;
+			}
+			return false;
+		}
+		
+		throw new UnsupportedOperationException();
+	}
+	/**
+	 * Returns room sensor
+	 */
+	@Override
+	public boolean hasRoomSensor() {
+		// TODO Auto-generated method stub
+		return hasRoomSensor;
+	}
+	/**
+	 * Returns current direction of the robot by using the maze directions
+	 */
+	@Override
+	public int[] getCurrentDirection() {
+		// TODO Auto-generated method stub
+		int[] curDir = {maze.dx, maze.dy};
+		return curDir;
+	}
+	/**
+	 * Returns the battery level
+	 */
+	@Override
+	public float getBatteryLevel() {
+		// TODO Auto-generated method stub
+		return batteryLevel;
+	}
+	/**
+	 * Sets the battery level by the new level
+	 */
+	@Override
+	public void setBatteryLevel(float level) {
+		// TODO Auto-generated method stub
+		this.batteryLevel = level;
+	}
+	/**
+	 * This returns the cost for a full rotation
+	 */
+	@Override
+	public float getEnergyForFullRotation() {
+		// TODO Auto-generated method stub
+		return (rotateCost *  4);
+	}
+
+	@Override
+	public float getEnergyForStepForward() {
+		// TODO Auto-generated method stub
+		return moveCost;
+	}
+	/**
+	 * Checks to see if the robot has enough battery to continue, if it doesn't it exits the game 
+	 * and displays the finish screen (at least it should). If it reaches the goal it returns true
+	 * as well.
+	 */
+	@Override
+	public boolean hasStopped() {
+		// TODO Auto-generated method stub
+		if (getBatteryLevel() <= 0){
+			maze.state = Constants.STATE_FINISH;
+			maze.notifyViewerRedraw();
+			
+			return true;
+		}
+		
+		if (isAtGoal() == true){
+			return true;
+		}
+		
+		return false;
+	}
+	/**
+	 * This methods mostly utilizes the cells class to determine the distan to the nearest 
+	 * obstacle, it also uses the maze to determine the current directions. It counts the number
+	 * distance the robot is to the next object.
+	 */
+	@Override
+	public int distanceToObstacle(Direction direction) throws UnsupportedOperationException {
+		// TODO Auto-generated method stub
+		if (hasDistanceSensor(direction) == true){
+			setBatteryLevel(getBatteryLevel() - senseCost); 
+			//direction robot is currently looking
+			int dx = getCurrentDirection()[0];
+			int dy = getCurrentDirection()[1];
+		
+		//change the direction to match where we want to sense
+			if (direction == Direction.BACKWARD){
+				dx = -dx;
+				dy = -dy;
+			}
+		
+			if (direction == Direction.LEFT){
+				int temp = dx;
+				dx = dy;
+				dy = -temp;
+			}
+		
+			if (direction == Direction.RIGHT){
+				int temp = dx;
+				dx = -dy;
+				dy = temp;
+			}
+		
+			int px = maze.px;
+			int py = maze.py;
+			int count = 0;
+			while (true){
+				if (px < 0 || px >= maze.mazew || py < 0 || py >= maze.mazeh){
+					return Integer.MAX_VALUE;
+				}
+			
+				if (dx == 0 && dy == -1){
+					if (maze.mazecells.hasWallOnTop(px, py)){
+						return count;
+					}
+				
+					py -= 1;
+				}
+			
+				if (dx == 0 && dy == 1){
+					if (maze.mazecells.hasWallOnBottom(px, py)){
+						return count;
+					}
+				
+					py += 1;
+				}
+			
+				if (dx == -1 && dy == 0){
+					if (maze.mazecells.hasWallOnLeft(px, py)){
+						return count;
+					}
+				
+					px -= 1;
+				}
+			
+				if (dx == 1 && dy == 0){
+					if (maze.mazecells.hasWallOnRight(px, py)){
+						return count;
+					}
+				
+					px += 1;
+				}
+			
+			
+			
+				count += 1;
+			}
+		
+		}
+
+	
+		else{
+			throw new UnsupportedOperationException();
+		}
+		
+	}
+
+	@Override
+	public boolean hasDistanceSensor(Direction direction) {
+		// TODO Auto-generated method stub
+		if (direction == Direction.FORWARD){
+			return senFront;
+		}
+		
+		else if (direction == Direction.BACKWARD){
+			return senBack;
+		}
+		
+		else if (direction == Direction.LEFT){
+			return senLeft;
+		}
+		
+		else {
+			return senRight;
+		}
+	}
+
+	
+	/**
+	 * Used by the driver to get the current move requested by the player when the drive2Exit method
+	 * is manipulating the robot
+	 */
+	public Turn getCurMove(){
+		return move;
+		
+	}
+	/**
+	 * Ecapsulation!! :D
+	 * @param move
+	 */
+	public void setMove(Turn move){
+		this.move = move;
+	}
+	
+
+
+}
